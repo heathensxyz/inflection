@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inflection — Career Decision Analyzer</title>
+<style>
+:root {
+  --bg: #F8FAFC; --card: #ffffff; --text: #0F172A; --muted: #64748B; --border: #E2E8F0;
+  --brand: #4F46E5; --brand-light: #EEF2FF; --brand-dark: #3730A3;
+  --cw: #0284C7; --cw-light: #E0F2FE; --cw-dark: #075985;
+  --mer: #0D9488; --mer-light: #CCFBF1; --mer-dark: #115E59;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+.demo-banner { background: #FEF3C7; border-bottom: 1px solid #FDE68A; padding: 9px 20px; text-align: center; font-size: 13px; font-weight: 600; color: #92400E; }
+.demo-banner a { color: #92400E; text-underline-offset: 2px; }
+
+.hero { background: linear-gradient(140deg, #0F172A 0%, #1E1B4B 60%, #0F2744 100%); color: white; padding: 60px 24px 52px; text-align: center; }
+.hero-logo { font-size: 12px; font-weight: 800; letter-spacing: 3.5px; text-transform: uppercase; color: #818CF8; margin-bottom: 22px; }
+.hero h1 { font-size: clamp(30px, 6vw, 54px); font-weight: 900; letter-spacing: -2px; line-height: 1.05; margin-bottom: 16px; }
+.hero h1 .accent { color: #818CF8; }
+.hero-sub { font-size: 16px; color: #94A3B8; max-width: 520px; margin: 0 auto 28px; line-height: 1.6; }
+.hero-chips { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 100px; font-size: 12px; font-weight: 600; }
+.chip.demo  { background: rgba(251,191,36,.15); color: #FCD34D; border: 1px solid rgba(251,191,36,.25); }
+.chip.blue  { background: rgba(129,140,248,.15); color: #818CF8; border: 1px solid rgba(129,140,248,.25); }
+.chip.slate { background: rgba(148,163,184,.12); color: #94A3B8; border: 1px solid rgba(148,163,184,.2); }
+
+.nav { background: white; border-bottom: 1px solid var(--border); display: flex; overflow-x: auto; position: sticky; top: 0; z-index: 100; padding: 0 20px; }
+.nav a { text-decoration: none; color: var(--muted); font-size: 13px; font-weight: 500; padding: 13px 14px; border-bottom: 2px solid transparent; white-space: nowrap; transition: all .2s; }
+.nav a:hover { color: var(--text); border-bottom-color: var(--brand); }
+
+.container { max-width: 980px; margin: 0 auto; padding: 36px 20px; display: flex; flex-direction: column; gap: 24px; }
+
+.card { background: var(--card); border-radius: 20px; padding: 28px 32px; box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 6px 20px rgba(0,0,0,.04); }
+.card-label { font-size: 10px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; display: flex; align-items: center; gap: 8px; }
+.card-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media(max-width:640px) { .two-col { grid-template-columns: 1fr; } }
+
+.comp-card { border-radius: 16px; padding: 22px; }
+.comp-card.cw  { background: linear-gradient(135deg, var(--cw-light), #F0F9FF); border: 1.5px solid #7DD3FC; }
+.comp-card.mer { background: linear-gradient(135deg, var(--mer-light), #F0FDFA); border: 1.5px solid #5EEAD4; }
+.comp-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+.comp-card-name { font-size: 18px; font-weight: 800; }
+.comp-card-name.cw  { color: var(--cw-dark); }
+.comp-card-name.mer { color: var(--mer-dark); }
+.comp-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 100px; }
+.comp-badge.public  { background: #DBEAFE; color: #1D4ED8; }
+.comp-badge.pre-ipo { background: #FEF3C7; color: #92400E; }
+.comp-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,.05); font-size: 14px; }
+.comp-row:last-child { border-bottom: none; }
+.comp-row .lbl { color: var(--muted); }
+.comp-row .val { font-weight: 700; }
+.comp-total { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 0; margin-top: 4px; border-top: 2px solid rgba(0,0,0,.1); }
+.comp-total .lbl { font-size: 13px; font-weight: 700; }
+.comp-total .val { font-size: 22px; font-weight: 900; letter-spacing: -1px; }
+.comp-total .val.cw  { color: var(--cw-dark); }
+.comp-total .val.mer { color: var(--mer-dark); }
+
+.legend { display: flex; gap: 8px 18px; flex-wrap: wrap; margin-bottom: 20px; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.chart-row { margin-bottom: 18px; }
+.chart-row-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.chart-year { font-size: 13px; font-weight: 700; color: var(--muted); }
+.chart-gap { font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 100px; }
+.chart-gap.cw-leads  { background: #E0F2FE; color: #075985; }
+.chart-gap.mer-leads { background: var(--mer-light); color: var(--mer-dark); }
+.chart-gap.close     { background: #F1F5F9; color: var(--muted); }
+.bars { display: flex; flex-direction: column; gap: 4px; }
+.bar-wrap { display: flex; align-items: center; gap: 10px; }
+.bar-label { font-size: 11px; font-weight: 600; color: var(--muted); width: 56px; flex-shrink: 0; }
+.bar-track { flex: 1; background: var(--border); border-radius: 6px; height: 20px; overflow: hidden; display: flex; }
+.bar-seg { height: 100%; width: 0; transition: width 1.2s cubic-bezier(.4,0,.2,1); }
+.bar-amount { font-size: 12px; font-weight: 700; width: 80px; flex-shrink: 0; text-align: right; }
+.chart-note { margin-top: 14px; background: var(--brand-light); border-radius: 10px; padding: 13px 16px; font-size: 13px; color: #4338CA; line-height: 1.55; }
+.price-note { font-size: 11px; color: #94A3B8; margin-top: 10px; }
+
+.scenario-tabs { display: grid; grid-template-columns: repeat(5,1fr); gap: 8px; margin-bottom: 18px; }
+@media(max-width:580px) { .scenario-tabs { grid-template-columns: repeat(3,1fr); } }
+.scenario-tab { border: 2px solid var(--border); border-radius: 14px; padding: 14px 8px; text-align: center; cursor: pointer; transition: all .2s; background: white; user-select: none; }
+.scenario-tab:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.08); border-color: #CBD5E1; }
+.scenario-tab.active { border-color: var(--brand); background: var(--brand-light); }
+.scenario-tab.danger.active { border-color: var(--cw); background: var(--cw-light); }
+.tab-icon { font-size: 22px; margin-bottom: 6px; }
+.tab-name { font-size: 11px; font-weight: 800; }
+.tab-val  { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.scenario-panel { border-radius: 16px; padding: 24px; background: linear-gradient(135deg, var(--brand-light), white); border: 1.5px solid #C7D2FE; }
+.scenario-panel.danger { background: linear-gradient(135deg, var(--cw-light), white); border-color: #7DD3FC; }
+.panel-headline { font-size: 15px; font-weight: 800; margin-bottom: 18px; }
+.panel-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; margin-bottom: 16px; }
+@media(max-width:520px) { .panel-stats { grid-template-columns: repeat(2,1fr); } }
+.panel-stat .stat-lbl { font-size: 11px; color: var(--muted); font-weight: 600; margin-bottom: 3px; }
+.panel-stat .stat-val { font-size: 20px; font-weight: 900; letter-spacing: -.5px; }
+.panel-stat .stat-val.up  { color: var(--mer); }
+.panel-stat .stat-val.down { color: var(--cw); }
+.panel-stat .stat-val.neu { color: var(--text); }
+.panel-stat .stat-sub { font-size: 11px; color: var(--muted); }
+.panel-note { font-size: 13px; line-height: 1.55; padding: 12px 14px; border-radius: 8px; background: rgba(255,255,255,.7); border: 1px solid rgba(0,0,0,.06); }
+
+canvas { width: 100%; height: auto; display: block; border-radius: 8px; }
+.controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 20px; }
+@media(max-width:560px) { .controls-grid { grid-template-columns: 1fr; } }
+.ctrl-col-hdr { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.ctrl-dot { width: 10px; height: 10px; border-radius: 3px; }
+.ctrl-dot.cw  { background: var(--cw); }
+.ctrl-dot.mer { background: var(--mer); }
+.ctrl-name { font-size: 14px; font-weight: 800; }
+.ctrl-group { margin-bottom: 12px; }
+.ctrl-label { font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 5px; display: flex; justify-content: space-between; }
+.ctrl-label span { font-weight: 800; color: var(--text); }
+input[type=range] { width: 100%; height: 5px; appearance: none; background: var(--border); border-radius: 4px; outline: none; cursor: pointer; }
+input[type=range]::-webkit-slider-thumb { appearance: none; width: 15px; height: 15px; border-radius: 50%; background: var(--text); cursor: pointer; }
+select { width: 100%; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 13px; font-weight: 600; background: white; color: var(--text); cursor: pointer; outline: none; }
+.expl-legend { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 14px; }
+.expl-leg-grp { display: flex; flex-direction: column; gap: 4px; }
+.expl-leg-ttl { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); margin-bottom: 2px; }
+.expl-leg-row { display: flex; align-items: center; gap: 5px; font-size: 11px; }
+.expl-leg-sw  { width: 11px; height: 11px; border-radius: 2px; flex-shrink: 0; }
+
+.lens-intro { font-size: 15px; line-height: 1.7; color: #334155; margin-bottom: 22px; }
+.lens-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media(max-width:640px) { .lens-grid { grid-template-columns: 1fr; } }
+.lens-card { border-radius: 16px; padding: 22px; background: var(--bg); border: 1.5px solid var(--border); }
+.lens-icon { font-size: 24px; margin-bottom: 10px; }
+.lens-name { font-size: 16px; font-weight: 900; letter-spacing: -.3px; margin-bottom: 3px; color: var(--brand-dark); }
+.lens-tagline { font-size: 13px; color: var(--muted); line-height: 1.5; margin-bottom: 14px; }
+.lens-answer { background: white; border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.6; color: #334155; border-left: 3px solid var(--brand); margin-bottom: 10px; }
+.lens-answer-label { font-size: 10px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; color: var(--brand); margin-bottom: 5px; }
+.lens-prompt { font-size: 12px; color: var(--muted); font-style: italic; line-height: 1.55; padding: 10px 12px; background: white; border-radius: 8px; border: 1px dashed var(--border); }
+.lens-prompt-label { font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #94A3B8; margin-bottom: 4px; font-style: normal; }
+
+footer { text-align: center; padding: 48px 20px 60px; font-size: 13px; color: var(--muted); line-height: 1.9; border-top: 1px solid var(--border); margin-top: 8px; }
+footer .brand-name { font-weight: 900; color: var(--brand); font-size: 15px; letter-spacing: -.3px; }
+.footer-cta { display: inline-flex; align-items: center; gap: 8px; margin-top: 20px; background: var(--brand); color: white; text-decoration: none; font-size: 14px; font-weight: 700; padding: 12px 24px; border-radius: 12px; transition: opacity .2s; }
+.footer-cta:hover { opacity: .85; }
+</style>
+</head>
+<body>
+
+<div class="demo-banner">
+  Demo Mode — Jordan is a fictional character. All numbers, companies, and details are illustrative only. &nbsp;<a href="#">Analyze your own decision &rarr;</a>
+</div>
+
+<div class="hero">
+  <div class="hero-logo">Inflection</div>
+  <h1>See your <span class="accent">inflection point</span><br>clearly.</h1>
+  <p class="hero-sub">Model the financial and personal trade-offs of your next career move — equity scenarios, vesting waterfalls, and the questions that actually matter.</p>
+  <div class="hero-chips">
+    <span class="chip demo">Demo: Jordan's story</span>
+    <span class="chip blue">Pre-IPO equity modeling</span>
+    <span class="chip slate">All data stays local</span>
+  </div>
+</div>
+
+<nav class="nav">
+  <a href="#offer">The Offers</a>
+  <a href="#cash">Cash Comparison</a>
+  <a href="#equity">Equity Scenarios</a>
+  <a href="#explorer">Vesting Explorer</a>
+  <a href="#lens">Decision Lens</a>
+</nav>
+
+<div class="container">
+
+  <!-- OFFER CARDS -->
+  <div id="offer">
+    <div class="two-col">
+      <div class="comp-card cw">
+        <div class="comp-card-header">
+          <div class="comp-card-name cw">Cloudware</div>
+          <span class="comp-badge public">Public Co.</span>
+        </div>
+        <div class="comp-row"><span class="lbl">Role</span><span class="val">Sr. Product Manager</span></div>
+        <div class="comp-row"><span class="lbl">Base salary</span><span class="val">$185,000</span></div>
+        <div class="comp-row"><span class="lbl">Bonus (25%, contingent)</span><span class="val">~$46,250</span></div>
+        <div class="comp-row"><span class="lbl">RSU vesting (2026)</span><span class="val">~$62,500</span></div>
+        <div class="comp-row"><span class="lbl">Annual refresh grant</span><span class="val">~$100,000</span></div>
+        <div class="comp-row"><span class="lbl">ESPP</span><span class="val">Yes (15% discount)</span></div>
+        <div class="comp-row"><span class="lbl">Equity status</span><span class="val">Liquid (public)</span></div>
+        <div class="comp-total">
+          <span class="lbl">Year 1 total</span>
+          <span class="val cw">$293,750</span>
+        </div>
+      </div>
+      <div class="comp-card mer">
+        <div class="comp-card-header">
+          <div class="comp-card-name mer">Meridian</div>
+          <span class="comp-badge pre-ipo">Pre-IPO Fintech</span>
+        </div>
+        <div class="comp-row"><span class="lbl">Role</span><span class="val">Sr. PM, Payments</span></div>
+        <div class="comp-row"><span class="lbl">Base salary</span><span class="val">$220,000</span></div>
+        <div class="comp-row"><span class="lbl">Variable comp (15%)</span><span class="val">~$33,000/yr</span></div>
+        <div class="comp-row"><span class="lbl">New hire RSU</span><span class="val">$500,000</span></div>
+        <div class="comp-row"><span class="lbl">Annual perf. grant</span><span class="val">~$175,000/yr</span></div>
+        <div class="comp-row"><span class="lbl">RSU vest schedule</span><span class="val">4yr / 1yr cliff</span></div>
+        <div class="comp-row"><span class="lbl">Last valuation</span><span class="val">~$4B (Series D)</span></div>
+        <div class="comp-total">
+          <span class="lbl">Year 1 cash</span>
+          <span class="val mer">$253,000</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CASH COMPARISON -->
+  <div class="card" id="cash">
+    <div class="card-label">Year-by-Year Cash Comparison</div>
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#0284C7"></div>Cloudware base</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#38BDF8"></div>Cloudware bonus</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#BAE6FD"></div>Cloudware RSUs</div>
+      <div class="legend-item" style="margin-left:8px;"><div class="legend-dot" style="background:#0D9488"></div>Meridian base</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#5EEAD4"></div>Meridian variable</div>
+    </div>
+
+    <div class="chart-row">
+      <div class="chart-row-header"><span class="chart-year">2026</span><span class="chart-gap cw-leads">Cloudware +$40,750</span></div>
+      <div class="bars">
+        <div class="bar-wrap"><span class="bar-label" style="color:var(--cw)">Cloudware</span><div class="bar-track"><div class="bar-seg" data-pct="59.4" style="background:#0284C7"></div><div class="bar-seg" data-pct="14.8" style="background:#38BDF8"></div><div class="bar-seg" data-pct="20.0" style="background:#BAE6FD"></div></div><span class="bar-amount">$293,750</span></div>
+        <div class="bar-wrap"><span class="bar-label" style="color:var(--mer)">Meridian</span><div class="bar-track"><div class="bar-seg" data-pct="70.6" style="background:#0D9488"></div><div class="bar-seg" data-pct="10.6" style="background:#5EEAD4"></div></div><span class="bar-amount">$253,000</span></div>
+      </div>
+    </div>
+
+    <div class="chart-row">
+      <div class="chart-row-header"><span class="chart-year">2027</span><span class="chart-gap cw-leads">Cloudware +$53,628</span></div>
+      <div class="bars">
+        <div class="bar-wrap"><span class="bar-label" style="color:var(--cw)">Cloudware</span><div class="bar-track"><div class="bar-seg" data-pct="61.1" style="background:#0284C7"></div><div class="bar-seg" data-pct="15.3" style="background:#38BDF8"></div><div class="bar-seg" data-pct="23.6" style="background:#BAE6FD"></div></div><span class="bar-amount">$311,688</span></div>
+        <div class="bar-wrap"><span class="bar-label" style="color:var(--mer)">Meridian</span><div class="bar-track"><div class="bar-seg" data-pct="72.0" style="background:#0D9488"></div><div class="bar-seg" data-pct="10.8" style="background:#5EEAD4"></div></div><span class="bar-amount" style="opacity:.7">$258,060 +🔒</span></div>
+      </div>
+    </div>
+
+    <div class="chart-row">
+      <div class="chart-row-header"><span class="chart-year">2028</span><span class="chart-gap cw-leads">Cloudware +$33,613</span></div>
+      <div class="bars">
+        <div class="bar-wrap"><span class="bar-label" style="color:var(--cw)">Cloudware</span><div class="bar-track"><div class="bar-seg" data-pct="63.0" style="background:#0284C7"></div><div class="bar-seg" data-pct="15.7" style="background:#38BDF8"></div><div class="bar-seg" data-pct="16.5" style="background:#BAE6FD"></div></div><span class="bar-amount">$296,834</span></div>
+        <div class="bar-wrap"><span class="bar-label" style="color:var(--mer)">Meridian</span><div class="bar-track"><div class="bar-seg" data-pct="73.5" style="background:#0D9488"></div><div class="bar-seg" data-pct="11.0" style="background:#5EEAD4"></div></div><span class="bar-amount" style="opacity:.7">$263,221 +🔒</span></div>
+      </div>
+    </div>
+
+    <div class="chart-row">
+      <div class="chart-row-header"><span class="chart-year">2029</span><span class="chart-gap close">Converging — gap ($9,208)</span></div>
+      <div class="bars">
+        <div class="bar-wrap"><span class="bar-label" style="color:var(--cw)">Cloudware</span><div class="bar-track"><div class="bar-seg" data-pct="64.9" style="background:#0284C7"></div><div class="bar-seg" data-pct="16.2" style="background:#38BDF8"></div><div class="bar-seg" data-pct="8.0" style="background:#BAE6FD"></div></div><span class="bar-amount">$277,694</span></div>
+        <div class="bar-wrap"><span class="bar-label" style="color:var(--mer)">Meridian</span><div class="bar-track"><div class="bar-seg" data-pct="74.9" style="background:#0D9488"></div><div class="bar-seg" data-pct="11.2" style="background:#5EEAD4"></div></div><span class="bar-amount">$268,486</span></div>
+      </div>
+    </div>
+
+    <div class="chart-row">
+      <div class="chart-row-header"><span class="chart-year">2030</span><span class="chart-gap mer-leads">Meridian +$4,581</span></div>
+      <div class="bars">
+        <div class="bar-wrap"><span class="bar-label" style="color:var(--cw)">Cloudware</span><div class="bar-track"><div class="bar-seg" data-pct="66.8" style="background:#0284C7"></div><div class="bar-seg" data-pct="16.7" style="background:#38BDF8"></div><div class="bar-seg" data-pct="2.9" style="background:#BAE6FD"></div></div><span class="bar-amount">$269,274</span></div>
+        <div class="bar-wrap"><span class="bar-label" style="color:var(--mer)">Meridian</span><div class="bar-track"><div class="bar-seg" data-pct="76.4" style="background:#0D9488"></div><div class="bar-seg" data-pct="11.5" style="background:#5EEAD4"></div></div><span class="bar-amount">$273,855</span></div>
+      </div>
+    </div>
+
+    <div class="price-note">* Cloudware RSU values based on $90.00/share (illustrative). Meridian shows cash only — pre-IPO RSU is modeled in Equity Scenarios and Vesting Explorer below.</div>
+    <div class="chart-note" style="margin-top:12px;">
+      <strong>Meridian base salary is higher from day one.</strong> Cloudware leads on total comp through 2029 only because of existing RSU vesting — a balance that erodes as those grants run off. Cash parity arrives around 2030 with no equity event required. Any IPO outcome is upside from there.
+    </div>
+  </div>
+
+  <!-- EQUITY SCENARIOS -->
+  <div class="card" id="equity">
+    <div class="card-label">Meridian Equity — IPO Scenario Explorer</div>
+    <p style="font-size:14px;color:var(--muted);margin-bottom:18px;line-height:1.6;">Meridian RSUs only unlock at a liquidity event. <strong>Cloudware 4-year total (cash + RSU): ~$1.18M.</strong> All figures pre-tax.</p>
+
+    <div class="scenario-tabs">
+      <div class="scenario-tab"        onclick="selectScenario(0)" id="stab-0"><div class="tab-icon">🐻</div><div class="tab-name">Bear</div><div class="tab-val">~$2.4B IPO</div></div>
+      <div class="scenario-tab active" onclick="selectScenario(1)" id="stab-1"><div class="tab-icon">📊</div><div class="tab-name">Base</div><div class="tab-val">~$4B IPO</div></div>
+      <div class="scenario-tab"        onclick="selectScenario(2)" id="stab-2"><div class="tab-icon">🚀</div><div class="tab-name">Bull</div><div class="tab-val">~$7.2B IPO</div></div>
+      <div class="scenario-tab"        onclick="selectScenario(3)" id="stab-3"><div class="tab-icon">🌙</div><div class="tab-name">Moonshot</div><div class="tab-val">~$12B IPO</div></div>
+      <div class="scenario-tab danger" onclick="selectScenario(4)" id="stab-4"><div class="tab-icon">🔒</div><div class="tab-name">No Liquidity</div><div class="tab-val">Equity = $0</div></div>
+    </div>
+
+    <div class="scenario-panel" id="scenPanel">
+      <div class="panel-headline" id="panHead">📊 Base Case — IPO at ~$4B, flat to last round</div>
+      <div class="panel-stats">
+        <div class="panel-stat"><div class="stat-lbl">IPO Valuation</div><div class="stat-val neu" id="pVal">~$4B</div><div class="stat-sub" id="pMult">1x last round</div></div>
+        <div class="panel-stat"><div class="stat-lbl">4yr Equity Value</div><div class="stat-val up" id="pEq">~$506k</div><div class="stat-sub">if IPO &amp; vested</div></div>
+        <div class="panel-stat"><div class="stat-lbl">4yr Total (Cash+Equity)</div><div class="stat-val up" id="pTot">~$1.55M</div><div class="stat-sub">Meridian</div></div>
+        <div class="panel-stat"><div class="stat-lbl">vs. Cloudware 4yr</div><div class="stat-val up" id="pVs">+$369k</div><div class="stat-sub" id="pVsSub">Meridian wins</div></div>
+      </div>
+      <div class="panel-note" id="panNote">At flat to last round, Meridian needs to trade at roughly 10x forward revenue at IPO — achievable for a high-growth fintech (~35% YoY) but requires the market to price in the platform story. Public fintech comps have compressed; this multiple requires a differentiated narrative.</div>
+    </div>
+  </div>
+
+  <!-- VESTING EXPLORER -->
+  <div class="card" id="explorer">
+    <div class="card-label">Vesting Waterfall Explorer</div>
+    <div class="controls-grid">
+      <div>
+        <div class="ctrl-col-hdr"><div class="ctrl-dot cw"></div><div class="ctrl-name">Cloudware</div></div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Stock growth / year <span id="cwGLabel">5%</span></div>
+          <input type="range" id="cwGrowth" min="0" max="20" step="1" value="5">
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Est. future annual refresh grant <span id="cwRefLabel">$100k</span></div>
+          <input type="range" id="cwRefresh" min="0" max="200000" step="5000" value="100000">
+        </div>
+      </div>
+      <div>
+        <div class="ctrl-col-hdr"><div class="ctrl-dot mer"></div><div class="ctrl-name">Meridian (Pre-IPO)</div></div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">IPO timing</div>
+          <select id="ipoTiming">
+            <option value="2027">2027 (base case)</option>
+            <option value="2028">2028</option>
+            <option value="2099">No IPO</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">IPO multiplier vs. ~$4B</div>
+          <select id="ipoMult">
+            <option value="0.6">Bear — 0.6x (~$2.4B)</option>
+            <option value="1.0" selected>Base — 1x (~$4B)</option>
+            <option value="1.8">Bull — 1.8x (~$7.2B)</option>
+            <option value="3.0">Moonshot — 3x (~$12B)</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <div class="ctrl-label">Post-IPO stock growth / year <span id="merGLabel">5%</span></div>
+          <input type="range" id="merGrowth" min="0" max="20" step="1" value="5">
+        </div>
+      </div>
+    </div>
+
+    <canvas id="vestChart"></canvas>
+
+    <div class="expl-legend">
+      <div class="expl-leg-grp">
+        <div class="expl-leg-ttl">Cloudware</div>
+        <div class="expl-leg-row"><div class="expl-leg-sw" style="background:#CBD5E1"></div>Cash (base + bonus)</div>
+        <div class="expl-leg-row"><div class="expl-leg-sw" style="background:#38BDF8"></div>Existing RSU grants</div>
+        <div class="expl-leg-row"><div class="expl-leg-sw" style="background:#FCD34D"></div>Future refresh grants (est.)</div>
+      </div>
+      <div class="expl-leg-grp">
+        <div class="expl-leg-ttl">Meridian</div>
+        <div class="expl-leg-row"><div class="expl-leg-sw" style="background:#BBF7D0"></div>Cash (base + variable)</div>
+        <div class="expl-leg-row"><div class="expl-leg-sw" style="background:#0D9488"></div>New hire RSU (post-IPO)</div>
+        <div class="expl-leg-row"><div class="expl-leg-sw" style="background:#065F46"></div>Perf grants (post-IPO)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DECISION LENS -->
+  <div class="card" id="lens">
+    <div class="card-label">Decision Lens — Six Frameworks</div>
+    <p class="lens-intro">The financial model tells you the <em>cost</em> of each choice. These six frameworks help you understand the <em>stakes</em>. Jordan worked through each one before deciding. Use the reflection prompts to build your own picture.</p>
+
+    <div class="lens-grid">
+
+      <div class="lens-card">
+        <div class="lens-icon">🛣️</div>
+        <div class="lens-name">The Runway Check</div>
+        <div class="lens-tagline">How much runway does your current path actually have? Is the constraint structural or just slow?</div>
+        <div class="lens-answer">
+          <div class="lens-answer-label">Jordan's take</div>
+          I've been at Cloudware four years. The Director track is real, but three peers were passed over in the same cycle and none left. The evidence isn't that I can't get there — it's that the path runs through two people who aren't going anywhere, on a timeline measured in years I'm not sure I want to spend waiting.
+        </div>
+        <div class="lens-prompt">
+          <div class="lens-prompt-label">Reflect</div>
+          What specific evidence tells you your current path is blocked — not just slow? Is this structural (org, headcount, politics) or performance-based? Have the doors actually been tried?
+        </div>
+      </div>
+
+      <div class="lens-card">
+        <div class="lens-icon">🪜</div>
+        <div class="lens-name">The Ladder or the Rope</div>
+        <div class="lens-tagline">Are you climbing the same ladder faster, or swinging to a different structure entirely?</div>
+        <div class="lens-answer">
+          <div class="lens-answer-label">Jordan's take</div>
+          This is a track switch as much as anything. Cloudware PM goes toward VP Product in a scaled, process-heavy org. Meridian is building from scratch inside an Engineering org. Same title, fundamentally different game. I'm not moving up — I'm moving sideways onto a steeper slope.
+        </div>
+        <div class="lens-prompt">
+          <div class="lens-prompt-label">Reflect</div>
+          Is this move a promotion, a lateral, or a track switch? Of those three, which matters most to you at this stage? Does the new role open doors the current one can't?
+        </div>
+      </div>
+
+      <div class="lens-card">
+        <div class="lens-icon">📍</div>
+        <div class="lens-name">The Zip Code Test</div>
+        <div class="lens-tagline">What neighborhood of organizational power does each function live in?</div>
+        <div class="lens-answer">
+          <div class="lens-answer-label">Jordan's take</div>
+          Cloudware's PM org reports to the CPO who reports to the CEO — strong zip code. But I've watched Engineering-embedded PMs get more roadmap leverage over the last two years. Meridian puts me in that neighborhood from day one. The access is different, and that difference compounds over time.
+        </div>
+        <div class="lens-prompt">
+          <div class="lens-prompt-label">Reflect</div>
+          Where does each role sit in the org chart? Does that function control budget, roadmap, or executive access? Is the new zip code actually better — or just different?
+        </div>
+      </div>
+
+      <div class="lens-card">
+        <div class="lens-icon">🤔</div>
+        <div class="lens-name">The Reluctant Yes</div>
+        <div class="lens-tagline">Did you go in hoping it would make the decision easier — and it didn't?</div>
+        <div class="lens-answer">
+          <div class="lens-answer-label">Jordan's take</div>
+          I turned down Meridian's first outreach eight months ago. Took this one because a friend vouched for the CEO. Both final rounds ran 45 minutes over. At some point I stopped preparing and started just talking. That doesn't usually happen when I'm interviewing out of obligation.
+        </div>
+        <div class="lens-prompt">
+          <div class="lens-prompt-label">Reflect</div>
+          What was the best conversation you had in this process? Did you actively try to talk yourself out of wanting the role? What happened when you did?
+        </div>
+      </div>
+
+      <div class="lens-card">
+        <div class="lens-icon">👻</div>
+        <div class="lens-name">The Ghost Test</div>
+        <div class="lens-tagline">Not "what do you want" — what would haunt you?</div>
+        <div class="lens-answer">
+          <div class="lens-answer-label">Jordan's take</div>
+          I keep imagining being 55 and telling someone I worked at a cloud infrastructure company through the entire fintech payments wave. That I understood it, had a real offer from inside it — and chose safety instead. That's the image I want to avoid. Not the financial outcome. The story.
+        </div>
+        <div class="lens-prompt">
+          <div class="lens-prompt-label">Reflect</div>
+          In ten years, which choice are you more likely to still be thinking about? Not which outcome is better — which path, if not taken, would sit with you?
+        </div>
+      </div>
+
+      <div class="lens-card">
+        <div class="lens-icon">🧱</div>
+        <div class="lens-name">The Floor Check</div>
+        <div class="lens-tagline">If this goes wrong, what does your floor look like?</div>
+        <div class="lens-answer">
+          <div class="lens-answer-label">Jordan's take</div>
+          If Meridian is a disaster and I leave in 18 months, I have "Sr. PM, Payments, VC-backed fintech" on my resume. That's a more marketable credential than where I started. The floor is higher than my current position. The downside is uncomfortable — not catastrophic.
+        </div>
+        <div class="lens-prompt">
+          <div class="lens-prompt-label">Reflect</div>
+          If you take the new role and it doesn't work out in two years, what does your resume look like? Is the downside catastrophic, uncomfortable, or actually a step forward regardless?
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <div class="brand-name">Inflection</div>
+  Career decisions, clearly.<br>
+  All data stays in your browser. No accounts, no tracking, no servers.<br>
+  <span style="font-size:12px;">Jordan, Cloudware, and Meridian are fictional. For illustrative purposes only.</span>
+  <br><a href="#" class="footer-cta">Analyze your own decision &rarr;</a>
+</footer>
+
+<script>
+// ── BAR ANIMATION ──────────────────────────────────────────────────────────────
+setTimeout(() => {
+  document.querySelectorAll('.bar-seg').forEach(s => { s.style.width = s.dataset.pct + '%'; });
+}, 200);
+
+// ── SCENARIO EXPLORER ──────────────────────────────────────────────────────────
+const scenarios = [
+  {
+    headline: '🐻 Bear Case — IPO at ~$2.4B, below last round',
+    val: '~$2.4B', mult: '0.6x last round', eq: '~$304k',
+    tot: '~$1.35M', vs: '+$167k', vsDir: 'up', vsSub: 'Meridian wins',
+    note: 'Even at a below-round IPO, Meridian outperforms Cloudware on 4-year total comp by ~$167k. The bear case is painful for equity upside — but the cash gap converges regardless. Only the no-liquidity scenario gives Cloudware the win.',
+    danger: false
+  },
+  {
+    headline: '📊 Base Case — IPO at ~$4B, flat to last round',
+    val: '~$4B', mult: '1x last round', eq: '~$506k',
+    tot: '~$1.55M', vs: '+$369k', vsDir: 'up', vsSub: 'Meridian wins',
+    note: 'At flat to last round, Meridian needs roughly 10x forward revenue at IPO — achievable for a high-growth fintech (~35% YoY) but requires the market to price in the platform narrative. Public fintech comps have compressed; this multiple needs a differentiated story.',
+    danger: false
+  },
+  {
+    headline: '🚀 Bull Case — IPO at ~$7.2B, 1.8x last round',
+    val: '~$7.2B', mult: '1.8x last round', eq: '~$911k',
+    tot: '~$1.95M', vs: '+$774k', vsDir: 'up', vsSub: 'Meridian wins',
+    note: 'Requires ~18x forward revenue — premium fintech pricing. Plausible if the payments infrastructure narrative lands and the IPO window is favorable. At this level the equity begins to be genuinely transformative for a 4-year horizon.',
+    danger: false
+  },
+  {
+    headline: '🌙 Moonshot — IPO at ~$12B, 3x last round',
+    val: '~$12B', mult: '3x last round', eq: '~$1.52M',
+    tot: '~$2.56M', vs: '+$1.38M', vsDir: 'up', vsSub: 'Meridian wins',
+    note: 'This is the scenario where early-stage equity is genuinely life-changing. Requires 30x+ forward revenue — top-decile fintech pricing. Low probability, not zero. Stripe and Toast both traded in this range at peak market conditions.',
+    danger: false
+  },
+  {
+    headline: '🔒 No Liquidity — equity is worth $0 for 4+ years',
+    val: 'N/A', mult: 'No IPO / tender offer', eq: '$0',
+    tot: '~$1.04M', vs: '-$137k', vsDir: 'down', vsSub: 'Cloudware wins',
+    note: 'The only scenario where Cloudware wins financially over 4 years. Requires no IPO, no tender offer, and no secondary market access for 4+ years. Given Meridian\'s FCF-positive status and Series D funding, this is the honest floor — not the expected case.',
+    danger: true
+  }
+];
+
+function selectScenario(i) {
+  const s = scenarios[i];
+  document.querySelectorAll('.scenario-tab').forEach((t, j) => t.classList.toggle('active', j === i));
+  const panel = document.getElementById('scenPanel');
+  panel.className = 'scenario-panel' + (s.danger ? ' danger' : '');
+  document.getElementById('panHead').textContent = s.headline;
+  document.getElementById('pVal').textContent = s.val;
+  document.getElementById('pMult').textContent = s.mult;
+  document.getElementById('pEq').textContent = s.eq;
+  document.getElementById('pEq').className = 'stat-val ' + (s.danger ? 'down' : 'up');
+  document.getElementById('pTot').textContent = s.tot;
+  document.getElementById('pTot').className = 'stat-val ' + (s.danger ? 'down' : 'up');
+  document.getElementById('pVs').textContent = s.vs;
+  document.getElementById('pVs').className = 'stat-val ' + s.vsDir;
+  document.getElementById('pVsSub').textContent = s.vsSub;
+  document.getElementById('panNote').textContent = s.note;
+}
+selectScenario(1);
+
+// ── VESTING EXPLORER ───────────────────────────────────────────────────────────
+const YEARS = [2026, 2027, 2028, 2029, 2030];
+const CW_CASH  = { 2026: 231250, 2027: 238188, 2028: 245334, 2029: 252694, 2030: 260274 };
+const CW_RSU   = { 2026: 62500,  2027: 73500,  2028: 51500,  2029: 25000,  2030: 9000  };
+const MER_CASH = { 2026: 253000, 2027: 258060, 2028: 263221, 2029: 268486, 2030: 273855 };
+const MER_RSU_BASE = {
+  2026: { nh: 0,      p27: 0,     p28: 0     },
+  2027: { nh: 125000, p27: 0,     p28: 0     },
+  2028: { nh: 125000, p27: 43750, p28: 0     },
+  2029: { nh: 125000, p27: 43750, p28: 43750 },
+  2030: { nh: 125000, p27: 43750, p28: 43750 },
+};
+
+function computeVest() {
+  const cwG     = parseInt(document.getElementById('cwGrowth').value)  / 100;
+  const cwRef   = parseInt(document.getElementById('cwRefresh').value);
+  const ipoYear = parseInt(document.getElementById('ipoTiming').value);
+  const ipoMult = parseFloat(document.getElementById('ipoMult').value);
+  const merG    = parseInt(document.getElementById('merGrowth').value) / 100;
+
+  // Future Cloudware refresh grants: vest 3/16 grant yr, 4/16 × 3 yrs, 1/16 final yr
+  const cwFuture = {};
+  YEARS.forEach(y => { cwFuture[y] = 0; });
+  [2027, 2028, 2029, 2030].forEach(gy => {
+    const p = { [gy]: 3/16, [gy+1]: 4/16, [gy+2]: 4/16, [gy+3]: 4/16, [gy+4]: 1/16 };
+    YEARS.forEach(y => {
+      if (p[y]) cwFuture[y] += cwRef * p[y] * Math.pow(1 + cwG, y - gy);
+    });
+  });
+
+  const result = {};
+  YEARS.forEach(y => {
+    const cwRsuVal = CW_RSU[y] * Math.pow(1 + cwG, y - 2026);
+    const cwTotal  = CW_CASH[y] + cwRsuVal + cwFuture[y];
+    const preIpo   = y < ipoYear;
+    let merRsuTotal = 0;
+    const merRsu = { nh: 0, p27: 0, p28: 0 };
+    if (!preIpo) {
+      const eff   = ipoMult * Math.pow(1 + merG, y - ipoYear);
+      merRsu.nh   = MER_RSU_BASE[y].nh  * eff;
+      merRsu.p27  = MER_RSU_BASE[y].p27 * eff;
+      merRsu.p28  = MER_RSU_BASE[y].p28 * eff;
+      merRsuTotal = merRsu.nh + merRsu.p27 + merRsu.p28;
+    } else {
+      merRsu.nh = MER_RSU_BASE[y].nh; // show faded locked value
+    }
+    result[y] = {
+      cwCash: CW_CASH[y], cwRsu: cwRsuVal, cwFuture: cwFuture[y], cwTotal,
+      merCash: MER_CASH[y], merRsu, merRsuTotal,
+      merTotal: MER_CASH[y] + merRsuTotal, preIpo,
+    };
+  });
+  return result;
+}
+
+function fmt(v) {
+  if (v >= 1e6) return '$' + (v/1e6).toFixed(2) + 'M';
+  if (v >= 1e3) return '$' + Math.round(v/1e3) + 'k';
+  return '$0';
+}
+
+function drawVest(data) {
+  const canvas = document.getElementById('vestChart');
+  const dpr = window.devicePixelRatio || 1;
+  const Wcss = canvas.parentElement.clientWidth;
+  const Hcss = Math.round(Wcss * 0.50);
+  canvas.width  = Wcss * dpr;
+  canvas.height = Hcss * dpr;
+  canvas.style.width  = Wcss + 'px';
+  canvas.style.height = Hcss + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const W = Wcss, H = Hcss;
+  const m = { t: 40, r: 20, b: 44, l: 66 };
+  const cW = W - m.l - m.r, cH = H - m.t - m.b;
+  ctx.clearRect(0, 0, W, H);
+
+  let maxVal = 0;
+  YEARS.forEach(y => { maxVal = Math.max(maxVal, data[y].cwTotal, data[y].merTotal); });
+  maxVal *= 1.1;
+
+  const sy = v => m.t + cH - (v / maxVal) * cH;
+  const bh = v => (v / maxVal) * cH;
+
+  for (let i = 0; i <= 5; i++) {
+    const v = maxVal * i / 5, yy = sy(v);
+    ctx.strokeStyle = i === 0 ? '#CBD5E1' : '#EFF2F5';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(m.l, yy); ctx.lineTo(W - m.r, yy); ctx.stroke();
+    ctx.fillStyle = '#94A3B8'; ctx.font = '11px system-ui'; ctx.textAlign = 'right';
+    ctx.fillText(fmt(v), m.l - 6, yy + 4);
+  }
+
+  const gW = cW / YEARS.length;
+  const bW = Math.min(46, gW * 0.33);
+  const gap = 5;
+
+  YEARS.forEach((yr, i) => {
+    const d  = data[yr];
+    const cx = m.l + (i + 0.5) * gW;
+    const ax = cx - bW - gap / 2;
+    const mx = cx + gap / 2;
+
+    // Cloudware bar
+    let y = m.t + cH;
+    const cwCH = bh(d.cwCash);
+    ctx.fillStyle = '#CBD5E1'; ctx.fillRect(ax, y - cwCH, bW, cwCH); y -= cwCH;
+    const cwRH = bh(d.cwRsu);
+    if (cwRH > 0.5) { ctx.fillStyle = '#38BDF8'; ctx.fillRect(ax, y - cwRH, bW, cwRH); y -= cwRH; }
+    const cwFH = bh(d.cwFuture);
+    if (cwFH > 0.5) { ctx.fillStyle = '#FCD34D'; ctx.fillRect(ax, y - cwFH, bW, cwFH); y -= cwFH; }
+    ctx.fillStyle = '#0284C7'; ctx.font = 'bold 10px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(fmt(d.cwTotal), ax + bW / 2, sy(d.cwTotal) - 5);
+
+    // Meridian bar
+    y = m.t + cH;
+    const mCH = bh(d.merCash);
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#BBF7D0'; ctx.fillRect(mx, y - mCH, bW, mCH); y -= mCH;
+    if (d.preIpo) {
+      const ipoM = parseFloat(document.getElementById('ipoMult').value);
+      const lockedH = bh(d.merRsu.nh * ipoM);
+      if (lockedH > 0.5) {
+        ctx.globalAlpha = 0.22;
+        ctx.fillStyle = '#0D9488'; ctx.fillRect(mx, y - lockedH, bW, lockedH);
+        ctx.globalAlpha = 1;
+      }
+      ctx.fillStyle = '#64748B'; ctx.font = '10px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText('🔒', mx + bW / 2, sy(d.merCash) - 6);
+    } else {
+      const nhH = bh(d.merRsu.nh);
+      if (nhH > 0.5) { ctx.fillStyle = '#0D9488'; ctx.fillRect(mx, y - nhH, bW, nhH); y -= nhH; }
+      const p27H = bh(d.merRsu.p27);
+      if (p27H > 0.5) { ctx.fillStyle = '#065F46'; ctx.fillRect(mx, y - p27H, bW, p27H); y -= p27H; }
+      const p28H = bh(d.merRsu.p28);
+      if (p28H > 0.5) { ctx.fillStyle = '#022c22'; ctx.fillRect(mx, y - p28H, bW, p28H); y -= p28H; }
+      ctx.fillStyle = '#115E59'; ctx.font = 'bold 10px system-ui'; ctx.textAlign = 'center';
+      ctx.fillText(fmt(d.merTotal), mx + bW / 2, sy(d.merTotal) - 5);
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.fillStyle = '#94A3B8'; ctx.font = '9px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText('CW', ax + bW / 2, H - m.b + 11);
+    ctx.fillText('MER', mx + bW / 2, H - m.b + 11);
+    ctx.fillStyle = '#1E293B'; ctx.font = 'bold 11px system-ui'; ctx.textAlign = 'center';
+    ctx.fillText(yr, cx, H - m.b + 25);
+  });
+
+  ctx.fillStyle = '#0284C7'; ctx.font = 'bold 11px system-ui'; ctx.textAlign = 'left';
+  ctx.fillText('▪ Cloudware', m.l, m.t - 18);
+  ctx.fillStyle = '#0D9488';
+  ctx.fillText('▪ Meridian', m.l + 82, m.t - 18);
+  ctx.fillStyle = '#94A3B8'; ctx.font = '10px system-ui';
+  ctx.fillText('(faded = pre-IPO locked)', m.l + 162, m.t - 18);
+}
+
+function renderVest() { drawVest(computeVest()); }
+
+document.getElementById('cwGrowth').addEventListener('input', function() {
+  document.getElementById('cwGLabel').textContent = this.value + '%'; renderVest();
+});
+document.getElementById('cwRefresh').addEventListener('input', function() {
+  document.getElementById('cwRefLabel').textContent = '$' + Math.round(this.value / 1000) + 'k'; renderVest();
+});
+document.getElementById('merGrowth').addEventListener('input', function() {
+  document.getElementById('merGLabel').textContent = this.value + '%'; renderVest();
+});
+document.getElementById('ipoTiming').addEventListener('change', renderVest);
+document.getElementById('ipoMult').addEventListener('change', renderVest);
+
+let rTimer;
+window.addEventListener('resize', () => { clearTimeout(rTimer); rTimer = setTimeout(renderVest, 120); });
+
+renderVest();
+</script>
+</body>
+</html>
