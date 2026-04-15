@@ -4,7 +4,7 @@
 
 Inflection is a browser-based tool for modeling the financial and personal trade-offs of a career move. It handles the scenarios that generic salary calculators miss: pre-IPO equity, multi-grant vesting waterfalls, IPO outcome ranges, and the qualitative frameworks that actually drive good decisions.
 
-**[Live demo](https://your-url-here)** — featuring Jordan, a fictional Sr. PM weighing a pre-IPO fintech offer against a public company role.
+**[Live demo](https://eclectic-florentine-8251bf.netlify.app/)** — featuring Jordan, a fictional Sr. PM weighing a pre-IPO fintech offer against a public company role.
 
 ---
 
