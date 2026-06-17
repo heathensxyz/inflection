@@ -4,7 +4,7 @@
 
 Inflection is a browser-based tool for modeling the financial and personal trade-offs of a career move. It handles the scenarios that generic salary calculators miss: pre-IPO equity, multi-grant vesting waterfalls, IPO outcome ranges, and the qualitative frameworks that actually drive good decisions.
 
-**[Live demo](https://eclectic-florentine-8251bf.netlify.app/)**, featuring Jordan, a fictional Sr. PM weighing a pre-IPO fintech offer against a public company role.
+**[Live demo](https://heathensxyz.github.io/inflection/)**, featuring Jordan, a fictional Sr. PM weighing a pre-IPO fintech offer against a public company role.
 
 ---
 
@@ -30,7 +30,7 @@ Or drag the file into any browser.
 The tool opens in **Demo Mode** with a fictional scenario (Jordan choosing between two companies). To model your own decision:
 
 1. Click **"My Analysis"** in the nav bar, or **"Analyze your own decision"** at the top or bottom
-2. Walk through the 3-step wizard: your current role, the new offer, and a review step
+2. Walk through the wizard: enter both roles in one form, then review and launch
 3. Your data saves automatically in your browser's localStorage
 4. Switch between Demo and My Analysis anytime using the nav toggle
 5. Use **"Export my data"** to save a backup, **"Clear my data"** to wipe everything
